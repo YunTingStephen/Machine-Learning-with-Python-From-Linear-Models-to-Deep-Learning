@@ -13,23 +13,38 @@ nb_epoch = 30
 num_classes = 10
 img_rows, img_cols = 42, 28 # input image dimensions
 
-class MLP(nn.Module):
+
+
+class CNN(nn.Module):
 
     def __init__(self, input_dimension):
-        super(MLP, self).__init__()
-        self.flatten = Flatten()
+        super(CNN, self).__init__()
         # TODO initialize model layers here
-        self.linear1 = nn.Linear(input_dimension, 64)
+        self.conv2d_1 = nn.Conv2d(1, 32, (3, 3))
+        self.relu = nn.ReLU()
+        self.maxpool2d = nn.MaxPool2d((2,2))
+        self.conv2d_2 = nn.Conv2d(32, 64, (3, 3))
+        self.flatten = Flatten() 
+        self.linear1 = nn.Linear(2880, 64)
+        self.dropout = nn.Dropout(p = 0.5)
         self.linear2 = nn.Linear(64, 20)
 
     def forward(self, x):
-        xf = self.flatten(x)
-        xl1 = self.linear1(xf)
-        xl2 = self.linear2(xl1)
-        out_first_digit = xl2[:,:10]
-        out_second_digit = xl2[:,10:]
+      
         # TODO use model layers to predict the two digits
-
+        x = self.conv2d_1(x)
+        x = self.relu(x)
+        x = self.maxpool2d(x) 
+        x = self.conv2d_2(x)
+        x = self.relu(x)
+        x = self.maxpool2d(x)
+        x = self.flatten(x)
+        x = self.linear1(x)
+        x = self.dropout(x)
+        x = self.linear2(x)
+        
+        out_first_digit = x[:,:10]
+        out_second_digit = x[:,10:]
         return out_first_digit, out_second_digit
 
 def main():
@@ -54,7 +69,7 @@ def main():
 
     # Load model
     input_dimension = img_rows * img_cols
-    model = MLP(input_dimension) # TODO add proper layers to MLP class above
+    model = CNN(input_dimension) # TODO add proper layers to CNN class above
 
     # Train
     train_model(train_batches, dev_batches, model)
